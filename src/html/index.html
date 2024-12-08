@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worksheet generator</title>
+</head>
+<body>
+    <header>
+        <h1>Worksheet generator</h1>
+    </header>
+
+    <main>
+      <h3>Worksheet properties</h3>
+      <hr>
+        <form id="worksheet-properties">
+          <span>
+            <label for="name">Name field</label>
+            <input type="checkbox" id="name">
+          </span>
+          <span>
+            <label for="date">Date field</label>
+            <input type="checkbox" id="date">
+          </span>
+          <span>
+            <label for="name">class field</label>
+            <input type="checkbox" id="class">
+          </span>
+          <span>
+            <label for="instruction">instruction field</label>
+            <input type="text" id="instruction">
+          </span>
+          <span>
+            <label for="image">Image:</label>
+            <input type="file" id="upload">
+          </span>
+          <span>
+            <label for="image">Problem count:</label>
+            <select name="problemCount" id="problem-count"></select>
+          </span>
+            <button type="button" id="reshuffle">Re-shuffle</button>
+            <button type="submit" value="Submit" id="generate">Generate worksheet</button>
+        </form>
+      <hr>
+      <h3>Problems:</h3>
+      <div id="problem-space">
+
+      </div>
+      <canvas id="image-canvas">
+      </canvas>
+      <canvas id="answer-grid-canvas">
+      </canvas>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Worksheet generator</p>
+    </footer>
+</body>
+</html>
