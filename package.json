@@ -10,8 +10,12 @@
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.1.0"
   },
-  "scripts": {
-    "build": "webpack",
-    "start": "webpack serve"
-  }
+
+ "scripts": {
+    "serve": "webpack serve --config webpack.dev.js",
+    "build:dev": "webpack --config webpack.dev.js",
+    "build:prod": "webpack --config webpack.prod.js",
+    "build": "npm run build:prod"
+ }
+
 }
