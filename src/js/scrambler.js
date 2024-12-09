@@ -1,8 +1,8 @@
-import { GridManager } from './GridManager';
-import { ProblemGridRenderer } from './ProblemGridRenderer';
-import { CanvasRenderer } from './CanvasRenderer';
+import { GridManager } from './gridManager';
+import { ProblemGridRenderer } from './problemCanvasRenderer';
+import { CanvasRenderer } from './puzzleCanvasRenderer';
 
-export class ScramblerSR {
+export class Scrambler {
   constructor(image, mainCanvas, problemCanvas, problemCount, answers, questions) {
     if (!image || !mainCanvas || !problemCanvas || !problemCount) throw new Error("Invalid input");
     this.image = image;
@@ -16,21 +16,18 @@ export class ScramblerSR {
   }
 
   initialize() {
-    const { columnInterval, rowInterval } = this.gridManager;
-    this.mainRenderer.drawImageGrid(columnInterval, rowInterval);
-    this.shuffle()
+    this.createPuzzleGrid()
     this.problemRenderer.drawGrid()
     this.problemRenderer.placeText(this.questions)
   }
 
-  placeAnswers() {
-    const {rowInterval } = this.gridManager;
-    this.mainRenderer.placeAnswersInTiles(this.shuffledSquareStarts, this.answers, rowInterval);
-  }
 
-  shuffle() {
+  createPuzzleGrid() {
     const {columnInterval, rowInterval } = this.gridManager;
-    this.mainRenderer.shuffleTiles(this.shuffledSquareStarts, columnInterval, rowInterval);
+    this.mainRenderer.drawImage(columnInterval, rowInterval);
+    this.mainRenderer.placeAnswersInTiles(this.shuffledSquareStarts, this.answers, rowInterval)
+    this.mainRenderer.shuffleTiles(this.squareStarts, columnInterval, rowInterval);
+    this.mainRenderer.drawGrid(columnInterval, rowInterval) 
   }
   
 }

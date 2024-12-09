@@ -10,10 +10,9 @@ export class CanvasRenderer {
     this.ctx.font = "25px Arial";
   }
 
-  drawImageGrid(columnInterval, rowInterval) {
+  drawImage(columnInterval, rowInterval) {
     this.clearCanvas();
     this.ctx.drawImage(this.image, 0, 0);
-    this.#drawGrid(columnInterval, rowInterval);
   }
 
   placeAnswersInTiles(squareStarts, answers, rowInterval) {
@@ -46,7 +45,7 @@ export class CanvasRenderer {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  #drawGrid(columnInterval, rowInterval) {
+  drawGrid(columnInterval, rowInterval) {
     for (let x = columnInterval; x < this.canvas.width; x += columnInterval) {
       this.#drawLine(x, 0, x, this.canvas.height);
     }

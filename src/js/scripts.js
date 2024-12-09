@@ -1,7 +1,6 @@
 import { AspectRatios } from './aspectRatios.js';
-import { ScramblerSR } from './scrambler.js'; // Import the updated ScramblerSR
+import { Scrambler } from './scrambler.js'; // Import the updated ScramblerSR
 import "../css/styles.css";
-import "../css/reset.css"
 import { jsPDF } from '/node_modules/jspdf/dist/jspdf.es.js';
 
 let selectedProblemCount = 4;
@@ -13,22 +12,21 @@ const problemCanvas = document.getElementById('answer-grid-canvas');
 const reshuffle = document.getElementById('reshuffle');
 const aspectRatios = new AspectRatios();
 const generateButton = document.getElementById("generate");
-let scramblerSR;
+let scrambler;
 
 reshuffle.addEventListener('click', (event) => {
   event.preventDefault();
-  if (scramblerSR) {
-    scramblerSR.initialize();
-    scramblerSR.placeAnswers();
+  if (scrambler) {
+    scrambler.createPuzzleGrid()
   }
 });
 
 generateButton.addEventListener('click', (event) => {
   event.preventDefault();
-  if (scramblerSR) {
+  if (scrambler) {
     const doc = new jsPDF();
-    doc.addImage(imageCanvas, 'JPEG', 10, 10, 135, 135, null, 'NONE', 0);
-    doc.addImage(problemCanvas, 'JPEG', 10, 155, 135, 135, null, 'NONE', 0);
+    doc.addImage(imageCanvas, 'JPEG', 0, 0, 148.5, 210, null, 'NONE', 0);
+    doc.addImage(problemCanvas, 'JPEG', 10, 150, 130, 130, null, 'NONE', 0);
     doc.save(`${Date.now().valueOf()}.pdf`);
   }
 });
@@ -43,11 +41,11 @@ fileInput.addEventListener('change', (event) => {
 problemCountElement.addEventListener("change", (e) => {
   selectedProblemCount = e.target.value;
   generateQuestionAnswerSpace(problemSpace, selectedProblemCount);
-  if (scramblerSR) {
-    scramblerSR.gridManager.problemCount = selectedProblemCount;
-    scramblerSR.gridManager.calculateGridDimensions();
-    scramblerSR.initialize();
-    scramblerSR.placeAnswers();
+  if (scrambler) {
+    scrambler.gridManager.problemCount = selectedProblemCount;
+    scrambler.gridManager.calculateGridDimensions();
+    scrambler.initialize();
+    scrambler.placeAnswers();
   }
 });
 
@@ -105,7 +103,7 @@ function paintImageOnCanvas(file) {
       const answers = Array.from(document.querySelectorAll(".a")).map((e) => e.value);
       const questions = Array.from(document.querySelectorAll(".q")).map((e) => e.value);
 
-      scramblerSR = new ScramblerSR(
+      scrambler = new Scrambler(
         img,
         imageCanvas,
         problemCanvas,
@@ -114,8 +112,7 @@ function paintImageOnCanvas(file) {
         questions
       );
 
-      scramblerSR.initialize();
-      scramblerSR.placeAnswers();
+      scrambler.initialize();
     };
   };
 
