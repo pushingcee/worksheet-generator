@@ -30669,18 +30669,6 @@ jsPDF.API.PDFObject = function () {
 
 /***/ }),
 
-/***/ "./src/css/reset.css":
-/*!***************************!*\
-  !*** ./src/css/reset.css ***!
-  \***************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-// extracted by mini-css-extract-plugin
-
-
-/***/ }),
-
 /***/ "./src/css/styles.css":
 /*!****************************!*\
   !*** ./src/css/styles.css ***!
@@ -30693,101 +30681,58 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./src/js/CanvasRenderer.js":
-/*!**********************************!*\
-  !*** ./src/js/CanvasRenderer.js ***!
-  \**********************************/
+/***/ "./src/js/aspectRatios.js":
+/*!********************************!*\
+  !*** ./src/js/aspectRatios.js ***!
+  \********************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CanvasRenderer: () => (/* binding */ CanvasRenderer)
+/* harmony export */   AspectRatios: () => (/* binding */ AspectRatios)
 /* harmony export */ });
-class CanvasRenderer {
-  constructor(canvas, image) {
-    if (!canvas || !image) throw new Error("Invalid input");
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d', { willReadFrequently: true });
-    this.image = image;
+class AspectRatio {
+  constructor(ratio, width, height) {
+    this.ratio = ratio;
+    this.width = width;
+    this.height = height;
+  }
+}
 
-    this.canvas.width = image.width;
-    this.canvas.height = image.height;
-    this.ctx.font = "25px Arial";
+class AspectRatios {
+  constructor() {
+    this.ratios = [
+      new AspectRatio(1.33333333333, 4, 3),    // 4:3
+      new AspectRatio(1.5, 3, 2),              // 3:2
+      new AspectRatio(1.77777777778, 16, 9),   // 16:9
+      new AspectRatio(1, 1, 1),                // 1:1
+      new AspectRatio(2.111111, 19, 9),        // 19:9
+      new AspectRatio(2, 18, 9),               // 18:9
+      new AspectRatio(0.8, 4, 5),              // 4:5
+      new AspectRatio(0.66666666666, 2, 3),    // 2:3
+      new AspectRatio(0.5625, 9, 16)           // 9:16
+    ];
   }
 
-  drawImageGrid(columnInterval, rowInterval) {
-    this.clearCanvas();
-    this.ctx.drawImage(this.image, 0, 0);
-    this.#drawGrid(columnInterval, rowInterval);
+  getAll() {
+    return this.ratios;
   }
 
-  placeAnswersInTiles(squareStarts, answers, rowInterval) {
-    this.ctx.save();
-  
-    this.ctx.globalAlpha = 0.4;
-    this.ctx.fillStyle = "white";
-  
-    squareStarts.forEach(({ x, y }) => {
-      const boxHeight = 50;
-      this.ctx.fillRect(x, y + rowInterval - boxHeight, 150, boxHeight);
-    });
-    this.ctx.restore();
-  
-    squareStarts.forEach(({ x, y }, index) => {
-      this.ctx.fillText(answers[index], x + 5, y + rowInterval - 5, 150);
-    });
-  
-  }
-  
-
-  shuffleTiles(squareStarts, columnInterval, rowInterval) {
-    for (let i = squareStarts.length - 1; i > 0; i--) {
-      let j = Math.floor(Math.random() * (i + 1));
-      this.#swapTiles(squareStarts, i, j, columnInterval, rowInterval);
-    }
-  }
-
-  clearCanvas() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
-  #drawGrid(columnInterval, rowInterval) {
-    for (let x = columnInterval; x < this.canvas.width; x += columnInterval) {
-      this.#drawLine(x, 0, x, this.canvas.height);
-    }
-    for (let y = rowInterval; y < this.canvas.height; y += rowInterval) {
-      this.#drawLine(0, y, this.canvas.width, y);
-    }
-    this.ctx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
-  #drawLine(xStart, yStart, xEnd, yEnd) {
-    this.ctx.beginPath();
-    this.ctx.moveTo(xStart, yStart);
-    this.ctx.lineTo(xEnd, yEnd);
-    this.ctx.stroke();
-  }
-
-  #swapTiles(squareStarts, firstIndex, secondIndex, columnInterval, rowInterval) {
-    const { x: x1, y: y1 } = squareStarts[firstIndex];
-    const { x: x2, y: y2 } = squareStarts[secondIndex];
-
-    const firstTile = this.ctx.getImageData(x1, y1, columnInterval, rowInterval);
-    const secondTile = this.ctx.getImageData(x2, y2, columnInterval, rowInterval);
-
-    this.ctx.putImageData(secondTile, x1, y1);
-    this.ctx.putImageData(firstTile, x2, y2);
-
-    [squareStarts[firstIndex], squareStarts[secondIndex]] = [squareStarts[secondIndex], squareStarts[firstIndex]];
+  findClosest(ratio) {
+    return this.ratios.reduce((closest, current) =>
+      Math.abs(current.ratio - ratio) < Math.abs(closest.ratio - ratio)
+        ? current
+        : closest
+    );
   }
 }
 
 
 /***/ }),
 
-/***/ "./src/js/GridManager.js":
+/***/ "./src/js/gridManager.js":
 /*!*******************************!*\
-  !*** ./src/js/GridManager.js ***!
+  !*** ./src/js/gridManager.js ***!
   \*******************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -30843,10 +30788,10 @@ class GridManager {
 
 /***/ }),
 
-/***/ "./src/js/ProblemGridRenderer.js":
-/*!***************************************!*\
-  !*** ./src/js/ProblemGridRenderer.js ***!
-  \***************************************/
+/***/ "./src/js/problemCanvasRenderer.js":
+/*!*****************************************!*\
+  !*** ./src/js/problemCanvasRenderer.js ***!
+  \*****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -30911,49 +30856,91 @@ class ProblemGridRenderer {
 
 /***/ }),
 
-/***/ "./src/js/aspectRatios.js":
-/*!********************************!*\
-  !*** ./src/js/aspectRatios.js ***!
-  \********************************/
+/***/ "./src/js/puzzleCanvasRenderer.js":
+/*!****************************************!*\
+  !*** ./src/js/puzzleCanvasRenderer.js ***!
+  \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   AspectRatios: () => (/* binding */ AspectRatios)
+/* harmony export */   CanvasRenderer: () => (/* binding */ CanvasRenderer)
 /* harmony export */ });
-class AspectRatio {
-  constructor(ratio, width, height) {
-    this.ratio = ratio;
-    this.width = width;
-    this.height = height;
-  }
-}
+class CanvasRenderer {
+  constructor(canvas, image) {
+    if (!canvas || !image) throw new Error("Invalid input");
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d', { willReadFrequently: true });
+    this.image = image;
 
-class AspectRatios {
-  constructor() {
-    this.ratios = [
-      new AspectRatio(1.33333333333, 4, 3),    // 4:3
-      new AspectRatio(1.5, 3, 2),              // 3:2
-      new AspectRatio(1.77777777778, 16, 9),   // 16:9
-      new AspectRatio(1, 1, 1),                // 1:1
-      new AspectRatio(2.111111, 19, 9),        // 19:9
-      new AspectRatio(2, 18, 9),               // 18:9
-      new AspectRatio(0.8, 4, 5),              // 4:5
-      new AspectRatio(0.66666666666, 2, 3),    // 2:3
-      new AspectRatio(0.5625, 9, 16)           // 9:16
-    ];
+    this.canvas.width = image.width;
+    this.canvas.height = image.height;
+    this.ctx.font = "25px Arial";
   }
 
-  getAll() {
-    return this.ratios;
+  drawImage(columnInterval, rowInterval) {
+    this.clearCanvas();
+    this.ctx.drawImage(this.image, 0, 0);
   }
 
-  findClosest(ratio) {
-    return this.ratios.reduce((closest, current) =>
-      Math.abs(current.ratio - ratio) < Math.abs(closest.ratio - ratio)
-        ? current
-        : closest
-    );
+  placeAnswersInTiles(squareStarts, answers, rowInterval) {
+    this.ctx.save();
+  
+    this.ctx.globalAlpha = 0.4;
+    this.ctx.fillStyle = "white";
+  
+    squareStarts.forEach(({ x, y }) => {
+      const boxHeight = 50;
+      this.ctx.fillRect(x, y + rowInterval - boxHeight, 150, boxHeight);
+    });
+    this.ctx.restore();
+  
+    squareStarts.forEach(({ x, y }, index) => {
+      this.ctx.fillText(answers[index], x + 5, y + rowInterval - 5, 150);
+    });
+  
+  }
+  
+
+  shuffleTiles(squareStarts, columnInterval, rowInterval) {
+    for (let i = squareStarts.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      this.#swapTiles(squareStarts, i, j, columnInterval, rowInterval);
+    }
+  }
+
+  clearCanvas() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  drawGrid(columnInterval, rowInterval) {
+    for (let x = columnInterval; x < this.canvas.width; x += columnInterval) {
+      this.#drawLine(x, 0, x, this.canvas.height);
+    }
+    for (let y = rowInterval; y < this.canvas.height; y += rowInterval) {
+      this.#drawLine(0, y, this.canvas.width, y);
+    }
+    this.ctx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  #drawLine(xStart, yStart, xEnd, yEnd) {
+    this.ctx.beginPath();
+    this.ctx.moveTo(xStart, yStart);
+    this.ctx.lineTo(xEnd, yEnd);
+    this.ctx.stroke();
+  }
+
+  #swapTiles(squareStarts, firstIndex, secondIndex, columnInterval, rowInterval) {
+    const { x: x1, y: y1 } = squareStarts[firstIndex];
+    const { x: x2, y: y2 } = squareStarts[secondIndex];
+
+    const firstTile = this.ctx.getImageData(x1, y1, columnInterval, rowInterval);
+    const secondTile = this.ctx.getImageData(x2, y2, columnInterval, rowInterval);
+
+    this.ctx.putImageData(secondTile, x1, y1);
+    this.ctx.putImageData(firstTile, x2, y2);
+
+    [squareStarts[firstIndex], squareStarts[secondIndex]] = [squareStarts[secondIndex], squareStarts[firstIndex]];
   }
 }
 
@@ -30968,22 +30955,22 @@ class AspectRatios {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   ScramblerSR: () => (/* binding */ ScramblerSR)
+/* harmony export */   Scrambler: () => (/* binding */ Scrambler)
 /* harmony export */ });
-/* harmony import */ var _GridManager__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./GridManager */ "./src/js/GridManager.js");
-/* harmony import */ var _ProblemGridRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ProblemGridRenderer */ "./src/js/ProblemGridRenderer.js");
-/* harmony import */ var _CanvasRenderer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./CanvasRenderer */ "./src/js/CanvasRenderer.js");
+/* harmony import */ var _gridManager__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./gridManager */ "./src/js/gridManager.js");
+/* harmony import */ var _problemCanvasRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./problemCanvasRenderer */ "./src/js/problemCanvasRenderer.js");
+/* harmony import */ var _puzzleCanvasRenderer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./puzzleCanvasRenderer */ "./src/js/puzzleCanvasRenderer.js");
 
 
 
 
-class ScramblerSR {
+class Scrambler {
   constructor(image, mainCanvas, problemCanvas, problemCount, answers, questions) {
     if (!image || !mainCanvas || !problemCanvas || !problemCount) throw new Error("Invalid input");
     this.image = image;
-    this.gridManager = new _GridManager__WEBPACK_IMPORTED_MODULE_0__.GridManager(image.width, image.height, problemCount);
-    this.mainRenderer = new _CanvasRenderer__WEBPACK_IMPORTED_MODULE_2__.CanvasRenderer(mainCanvas, image);
-    this.problemRenderer = new _ProblemGridRenderer__WEBPACK_IMPORTED_MODULE_1__.ProblemGridRenderer(problemCanvas, this.gridManager);
+    this.gridManager = new _gridManager__WEBPACK_IMPORTED_MODULE_0__.GridManager(image.width, image.height, problemCount);
+    this.mainRenderer = new _puzzleCanvasRenderer__WEBPACK_IMPORTED_MODULE_2__.CanvasRenderer(mainCanvas, image);
+    this.problemRenderer = new _problemCanvasRenderer__WEBPACK_IMPORTED_MODULE_1__.ProblemGridRenderer(problemCanvas, this.gridManager);
     this.answers = answers;
     this.questions = questions;
     this.squareStarts = [...this.gridManager.squareStarts];
@@ -30991,21 +30978,18 @@ class ScramblerSR {
   }
 
   initialize() {
-    const { columnInterval, rowInterval } = this.gridManager;
-    this.mainRenderer.drawImageGrid(columnInterval, rowInterval);
-    this.shuffle()
+    this.createPuzzleGrid()
     this.problemRenderer.drawGrid()
     this.problemRenderer.placeText(this.questions)
   }
 
-  placeAnswers() {
-    const {rowInterval } = this.gridManager;
-    this.mainRenderer.placeAnswersInTiles(this.shuffledSquareStarts, this.answers, rowInterval);
-  }
 
-  shuffle() {
+  createPuzzleGrid() {
     const {columnInterval, rowInterval } = this.gridManager;
-    this.mainRenderer.shuffleTiles(this.shuffledSquareStarts, columnInterval, rowInterval);
+    this.mainRenderer.drawImage(columnInterval, rowInterval);
+    this.mainRenderer.placeAnswersInTiles(this.shuffledSquareStarts, this.answers, rowInterval)
+    this.mainRenderer.shuffleTiles(this.squareStarts, columnInterval, rowInterval);
+    this.mainRenderer.drawGrid(columnInterval, rowInterval) 
   }
   
 }
@@ -31337,11 +31321,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _aspectRatios_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./aspectRatios.js */ "./src/js/aspectRatios.js");
 /* harmony import */ var _scrambler_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./scrambler.js */ "./src/js/scrambler.js");
 /* harmony import */ var _css_styles_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../css/styles.css */ "./src/css/styles.css");
-/* harmony import */ var _css_reset_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../css/reset.css */ "./src/css/reset.css");
-/* harmony import */ var _node_modules_jspdf_dist_jspdf_es_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../../../node_modules/jspdf/dist/jspdf.es.js */ "./node_modules/jspdf/dist/jspdf.es.js");
+/* harmony import */ var _node_modules_jspdf_dist_jspdf_es_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../../node_modules/jspdf/dist/jspdf.es.js */ "./node_modules/jspdf/dist/jspdf.es.js");
 
  // Import the updated ScramblerSR
-
 
 
 
@@ -31354,22 +31336,21 @@ const problemCanvas = document.getElementById('answer-grid-canvas');
 const reshuffle = document.getElementById('reshuffle');
 const aspectRatios = new _aspectRatios_js__WEBPACK_IMPORTED_MODULE_0__.AspectRatios();
 const generateButton = document.getElementById("generate");
-let scramblerSR;
+let scrambler;
 
 reshuffle.addEventListener('click', (event) => {
   event.preventDefault();
-  if (scramblerSR) {
-    scramblerSR.initialize();
-    scramblerSR.placeAnswers();
+  if (scrambler) {
+    scrambler.createPuzzleGrid()
   }
 });
 
 generateButton.addEventListener('click', (event) => {
   event.preventDefault();
-  if (scramblerSR) {
-    const doc = new _node_modules_jspdf_dist_jspdf_es_js__WEBPACK_IMPORTED_MODULE_4__.jsPDF();
-    doc.addImage(imageCanvas, 'JPEG', 10, 10, 135, 135, null, 'NONE', 0);
-    doc.addImage(problemCanvas, 'JPEG', 10, 155, 135, 135, null, 'NONE', 0);
+  if (scrambler) {
+    const doc = new _node_modules_jspdf_dist_jspdf_es_js__WEBPACK_IMPORTED_MODULE_3__.jsPDF();
+    doc.addImage(imageCanvas, 'JPEG', 0, 0, 148.5, 210, null, 'NONE', 0);
+    doc.addImage(problemCanvas, 'JPEG', 10, 150, 130, 130, null, 'NONE', 0);
     doc.save(`${Date.now().valueOf()}.pdf`);
   }
 });
@@ -31384,11 +31365,11 @@ fileInput.addEventListener('change', (event) => {
 problemCountElement.addEventListener("change", (e) => {
   selectedProblemCount = e.target.value;
   generateQuestionAnswerSpace(problemSpace, selectedProblemCount);
-  if (scramblerSR) {
-    scramblerSR.gridManager.problemCount = selectedProblemCount;
-    scramblerSR.gridManager.calculateGridDimensions();
-    scramblerSR.initialize();
-    scramblerSR.placeAnswers();
+  if (scrambler) {
+    scrambler.gridManager.problemCount = selectedProblemCount;
+    scrambler.gridManager.calculateGridDimensions();
+    scrambler.initialize();
+    scrambler.placeAnswers();
   }
 });
 
@@ -31446,7 +31427,7 @@ function paintImageOnCanvas(file) {
       const answers = Array.from(document.querySelectorAll(".a")).map((e) => e.value);
       const questions = Array.from(document.querySelectorAll(".q")).map((e) => e.value);
 
-      scramblerSR = new _scrambler_js__WEBPACK_IMPORTED_MODULE_1__.ScramblerSR(
+      scrambler = new _scrambler_js__WEBPACK_IMPORTED_MODULE_1__.Scrambler(
         img,
         imageCanvas,
         problemCanvas,
@@ -31455,8 +31436,7 @@ function paintImageOnCanvas(file) {
         questions
       );
 
-      scramblerSR.initialize();
-      scramblerSR.placeAnswers();
+      scrambler.initialize();
     };
   };
 
