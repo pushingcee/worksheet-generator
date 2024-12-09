@@ -30788,6 +30788,46 @@ class GridManager {
 
 /***/ }),
 
+/***/ "./src/js/pdfGenerator.js":
+/*!********************************!*\
+  !*** ./src/js/pdfGenerator.js ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   PdfGen: () => (/* binding */ PdfGen)
+/* harmony export */ });
+/* harmony import */ var _node_modules_jspdf_dist_jspdf_es_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../../node_modules/jspdf/dist/jspdf.es.js */ "./node_modules/jspdf/dist/jspdf.es.js");
+
+
+class PdfGen {
+  constructor() {
+    this.doc = new _node_modules_jspdf_dist_jspdf_es_js__WEBPACK_IMPORTED_MODULE_0__.jsPDF();
+  }
+
+  generate(imageCanvas, problemCanvas, singlePage = false) {
+    if (!imageCanvas || !problemCanvas) {
+      console.error("Invalid canvas elements provided!");
+      return;
+    }
+    if (singlePage) {
+      this.doc.addImage(imageCanvas, 'JPEG', 10, 10, 130, 130, null, 'NONE', 0);
+      this.doc.addImage(problemCanvas, 'JPEG', 10, 150, 130, 130, null, 'NONE', 0);
+    } else {
+      this.doc.addImage(imageCanvas, 'JPEG', 10, 50, 190, 190, null, 'NONE', 0);
+      this.doc.addPage();
+      this.doc.addImage(problemCanvas, 'JPEG', 10, 50, 190, 190, null, 'NONE', 0);
+    }
+    this.doc.save(`${Date.now()}.pdf`);
+    this.doc = new _node_modules_jspdf_dist_jspdf_es_js__WEBPACK_IMPORTED_MODULE_0__.jsPDF();
+  }
+  
+}
+
+
+/***/ }),
+
 /***/ "./src/js/problemCanvasRenderer.js":
 /*!*****************************************!*\
   !*** ./src/js/problemCanvasRenderer.js ***!
@@ -30878,7 +30918,7 @@ class CanvasRenderer {
     this.ctx.font = "25px Arial";
   }
 
-  drawImage(columnInterval, rowInterval) {
+  drawImage() {
     this.clearCanvas();
     this.ctx.drawImage(this.image, 0, 0);
   }
@@ -31321,9 +31361,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _aspectRatios_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./aspectRatios.js */ "./src/js/aspectRatios.js");
 /* harmony import */ var _scrambler_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./scrambler.js */ "./src/js/scrambler.js");
 /* harmony import */ var _css_styles_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../css/styles.css */ "./src/css/styles.css");
-/* harmony import */ var _node_modules_jspdf_dist_jspdf_es_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../../node_modules/jspdf/dist/jspdf.es.js */ "./node_modules/jspdf/dist/jspdf.es.js");
+/* harmony import */ var _pdfGenerator_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./pdfGenerator.js */ "./src/js/pdfGenerator.js");
 
- // Import the updated ScramblerSR
+
 
 
 
@@ -31334,9 +31374,11 @@ const fileInput = document.getElementById('upload');
 const imageCanvas = document.getElementById('image-canvas');
 const problemCanvas = document.getElementById('answer-grid-canvas');
 const reshuffle = document.getElementById('reshuffle');
-const aspectRatios = new _aspectRatios_js__WEBPACK_IMPORTED_MODULE_0__.AspectRatios();
 const generateButton = document.getElementById("generate");
+const checkBoxes = document.querySelectorAll(".check-box")
+let singlePage = false;
 let scrambler;
+let pdfGenerator = new _pdfGenerator_js__WEBPACK_IMPORTED_MODULE_3__.PdfGen()
 
 reshuffle.addEventListener('click', (event) => {
   event.preventDefault();
@@ -31347,13 +31389,17 @@ reshuffle.addEventListener('click', (event) => {
 
 generateButton.addEventListener('click', (event) => {
   event.preventDefault();
-  if (scrambler) {
-    const doc = new _node_modules_jspdf_dist_jspdf_es_js__WEBPACK_IMPORTED_MODULE_3__.jsPDF();
-    doc.addImage(imageCanvas, 'JPEG', 0, 0, 148.5, 210, null, 'NONE', 0);
-    doc.addImage(problemCanvas, 'JPEG', 10, 150, 130, 130, null, 'NONE', 0);
-    doc.save(`${Date.now().valueOf()}.pdf`);
+  if (scrambler && pdfGenerator) {
+    pdfGenerator.generate(imageCanvas, problemCanvas, singlePage)
   }
 });
+
+checkBoxes.forEach(cb => {
+  cb.addEventListener("change", event => {
+    singlePage = event.target.checked;
+  });
+});
+
 
 fileInput.addEventListener('change', (event) => {
   const file = event.target.files[0];
