@@ -2,6 +2,7 @@ import { AspectRatios } from './aspectRatios.js';
 import { Scrambler } from './scrambler.js';
 import "../css/styles.css";
 import { PdfGen } from './pdfGenerator.js';
+import "../css/reset.css"
 
 let selectedProblemCount = 4;
 const problemSpace = document.getElementById("problem-space");
