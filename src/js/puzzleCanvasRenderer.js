@@ -10,7 +10,7 @@ export class CanvasRenderer {
     this.ctx.font = "25px Arial";
   }
 
-  drawImage(columnInterval, rowInterval) {
+  drawImage() {
     this.clearCanvas();
     this.ctx.drawImage(this.image, 0, 0);
   }

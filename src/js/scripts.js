@@ -1,7 +1,7 @@
 import { AspectRatios } from './aspectRatios.js';
-import { Scrambler } from './scrambler.js'; // Import the updated ScramblerSR
+import { Scrambler } from './scrambler.js';
 import "../css/styles.css";
-import { jsPDF } from '/node_modules/jspdf/dist/jspdf.es.js';
+import { PdfGen } from './pdfGenerator.js';
 
 let selectedProblemCount = 4;
 const problemSpace = document.getElementById("problem-space");
@@ -10,9 +10,11 @@ const fileInput = document.getElementById('upload');
 const imageCanvas = document.getElementById('image-canvas');
 const problemCanvas = document.getElementById('answer-grid-canvas');
 const reshuffle = document.getElementById('reshuffle');
-const aspectRatios = new AspectRatios();
 const generateButton = document.getElementById("generate");
+const checkBoxes = document.querySelectorAll(".check-box")
+let singlePage = false;
 let scrambler;
+let pdfGenerator = new PdfGen()
 
 reshuffle.addEventListener('click', (event) => {
   event.preventDefault();
@@ -23,13 +25,17 @@ reshuffle.addEventListener('click', (event) => {
 
 generateButton.addEventListener('click', (event) => {
   event.preventDefault();
-  if (scrambler) {
-    const doc = new jsPDF();
-    doc.addImage(imageCanvas, 'JPEG', 0, 0, 148.5, 210, null, 'NONE', 0);
-    doc.addImage(problemCanvas, 'JPEG', 10, 150, 130, 130, null, 'NONE', 0);
-    doc.save(`${Date.now().valueOf()}.pdf`);
+  if (scrambler && pdfGenerator) {
+    pdfGenerator.generate(imageCanvas, problemCanvas, singlePage)
   }
 });
+
+checkBoxes.forEach(cb => {
+  cb.addEventListener("change", event => {
+    singlePage = event.target.checked;
+  });
+});
+
 
 fileInput.addEventListener('change', (event) => {
   const file = event.target.files[0];
