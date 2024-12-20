@@ -1,5 +1,5 @@
 # Worksheet Generator
-[**Try it here**](https://pushingcee.github.io/worksheet-generator/)
+[**Try it here**](https://pushingcee.github.io/worksheet-generator/)  
 This is a small project created for my partner, a math teacher, to make learning more engaging and tailored for students. The goal of the Worksheet Generator is to create fun, personalized worksheets based on individual student interests. 
 
 ### Usage
@@ -20,7 +20,7 @@ This project is in its early stages, with planned improvements including:
 ### Additonal information - a.k.a Yap
 Nowadays I'm a backend developer and this project is done as a refresher of my vanilla javascript, css and some html. 
 It was pleasantly surprising that even a simple front-end project greatly benefitted my understanding of:
-- webpack, I've worked with it when using angular, but this was the first time I looked below the surface
+- Webpack, I've worked with it when using angular, but this was the first time I looked below the surface. 
 - Github Actions, their docs are amazing 
 - HTML5 Canvas, [This is the best canvas resource I found]([https://bucephalus.org/text/CanvasHandbook/CanvasHandbook.html#strokerectxywh](https://bucephalus.org/text/CanvasHandbook/CanvasHandbook.html))
 In the future I might write a series of posts on how the core functionalities of this project can be done, but it's unlikely
