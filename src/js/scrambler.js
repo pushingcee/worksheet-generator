@@ -21,6 +21,12 @@ export class Scrambler {
     this.problemRenderer.placeText(this.questions)
   }
 
+  adjustForProblemCount(problemCount){
+    this.gridManager = new GridManager(this.image.width, this.image.height, Number(problemCount))
+    this.problemRenderer = new ProblemGridRenderer(this.problemRenderer.canvas, this.gridManager)
+    this.squareStarts = [...this.gridManager.squareStarts];
+    this.shuffledSquareStarts = [...this.gridManager.squareStarts]; 
+  }
 
   createPuzzleGrid() {
     const {columnInterval, rowInterval } = this.gridManager;

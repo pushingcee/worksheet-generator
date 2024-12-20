@@ -1,6 +1,9 @@
 export class ProblemGridRenderer {
   constructor(canvas, gridManager) {
-    if (!canvas || !gridManager) throw new Error("Invalid input");
+    if (!canvas) 
+      throw new Error(`Invalid canvas value: ${canvas}`);
+    if(!gridManager)
+      throw new Error(`Invalid grid manager value: ${gridManager}`)
 
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");

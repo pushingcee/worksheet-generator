@@ -14,11 +14,11 @@
     "webpack-dev-server": "^5.1.0"
   },
 
- "scripts": {
+  "scripts": {
     "serve": "webpack serve --config webpack.dev.js",
     "build:dev": "webpack --config webpack.dev.js",
     "build:prod": "webpack --config webpack.prod.js",
     "build": "npm run build:prod"
- }
+  }
 
 }
