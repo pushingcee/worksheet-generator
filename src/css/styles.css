@@ -1,76 +1,197 @@
 :root {
-  --brown: #8D493A; 
-  --light-brown: #D0B8A8;
-  --beige: #F8EDE3;
-  --beige-dark: #DFD3C3;
+  /* Material Design Dark Theme Colors */
+  --color-l0: #121212; /* Dark background */
+  --color-l1: #2a2a2a;
+  --color-l2: #414141;
+  --color-l3: #595959;
+  --color-l4: #717171;
+  --color-l5: #888888;
+  --surface: #1E1E1E; /* Surface color for cards, sheets, etc. */
+  --error: #CF6679; /* Error color */
+  --on-background: #FFFFFF; /* Text/iconography on background */
+  --on-surface: #FFFFFF; /* Text/iconography on surface */
+  --on-primary: #000000; /* Text/iconography on primary */
+  --on-secondary: #000000; /* Text/iconography on secondary */
+  --on-error: #000000; /* Text/iconography on error */
   font-size: 1.2em;
-  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
 
+@media (min-width: 799px) {
+
+  h1, h2, h3 {
+    font-family: 'Fredoka', sans-serif !important;
+  }
+  
+  h1 {
+    font-size: 4em !important;
+  }
+  h3 {
+    font-size: 2em !important;
+    margin-bottom: 0.5em !important;
+  }
+  p{
+    font-size: 1em;
+  }
+
+  form{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 799px) {
+  h1 {
+    font-size: 2em !important;
+  }
+  h3 {
+    font-size: 1.5em !important;
+    margin-bottom: 0.25em !important;
+  }
+  p {
+    font-size: 1em;
+  }
+  form{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+}
+
+form *::hover {
+  background-color: var(--color-l5);
+}
+
+form>span,
+form>button {
+  margin: 0.2em;
+  border: 1px solid var(--color-l2);
+  border-radius: 0.4em;
+  color: var(--primary);
+  background-color: var(--color-l1);
+}
+
+
 @media (min-width: 1200px) {
-  #problem-space{
+  #problem-space {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
 @media (max-width: 1199px) {
-  #problem-space{
+  #problem-space {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
 @media (max-width: 799px) {
-  #problem-space{
+  #problem-space {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
   }
 }
-span[class=info-box]>input[type="text"] {
+
+span[class=info-box] > input[type="text"] {
   width: 5em;
   padding: 0.3em;
   font-size: inherit;
-  color: var(--brown);
-  border-color: var(--light-brown);
-  border-width: 0.2em;
+  color: var(--on-surface);
+  background-color: var(--color-l1);
+  border: 0.2em solid var(--color-l2);
   border-radius: 1em;
-  border-width: 0.2em;
-  margin-left: 0.1em;
-  margin-right: 0.1em;
+  margin: 0 0.1em;
 }
 
-span[class=info-box]>input[type="text"]:focus {
-  border-color: var(--brown);
+#canvas-container{
+  display: flex; 
+  flex-direction: row; 
+  width: 100%; 
+  justify-content: space-around; 
+  align-items: center;
 }
 
-.q{
+canvas {
+  flex: 0 0 auto; 
+  max-width: 48%; 
+  height: auto; 
+  margin: 0.3em !important;
+}
+
+h1, h2, h3 {
+  font-family: 'Fredoka', sans-serif !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+span[class=info-box] > input[type="text"]:focus,
+span[class=info-box] > input[type="text"]:focus-visible {
+  border-color: var(--color-l4);
+  background-color: var(--color-l2);
+  outline: none;
+}
+
+.q {
   flex: 2.5;
 }
-.a{
+
+.a {
   flex: 1;
 }
-.q-label{
+
+.q-label {
   display: flex;
-  align-items: center; 
+  align-items: center;
   margin-right: 0.1em;
-  flex:0.5;
+  flex: 0.5;
 }
-.a-label{
+
+.a-label {
   display: flex;
-  align-items: center; 
-  flex:0.5;
+  align-items: center;
+  flex: 0.5;
 }
 
 body {
-  background-color: var(--beige);
-  font-size: inherit;
-  font-family: inherit;
+  background-color: var(--color-l0);
+  color: var(--on-background);
 }
 
 .info-box {
   display: inline-flex;
-  border: 1px solid var(--brown);
+  border: 1px solid var(--color-l2);
   border-radius: 0.4em;
+  background-color: var(--color-l1);
   height: 2em;
-  padding: 0.2em 0.4em 0.2em 0.4em;
+  padding: 0.2em 0.4em;
   margin: 0.1em;
+  color: var(--on-surface);
+  margin: 0.25em;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.info-box:hover {
+  border-color: var(--color-l3);
+  scale: 1.02;
+}
+
+hr {
+  margin: 1em 0;
+  height: 0.15em;
+  border: none;
+  background: -webkit-gradient(linear, 0 0, 100% 0, from(transparent), to(transparent), color-stop(50%, var(--color-l5)));
+}
+
+
+* {
+  font-family: 'Nunito', sans-serif !important;
+  text-align: center;
 }

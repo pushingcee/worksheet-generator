@@ -4,6 +4,8 @@ import { PdfGen } from './pdfGenerator.js';
 import * as domHelper from './domHelper.js'
 import "../css/styles.css";
 import "../css/reset.css"
+import '@fontsource/fredoka';
+import '@fontsource/nunito'; 
 
 addEventListener("DOMContentLoaded", () => init());
 
