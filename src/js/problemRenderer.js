@@ -1,4 +1,4 @@
-export class ProblemDivRenderer {
+export class ProblemRenderer {
   constructor(container, gridManager) {
     if (!container) 
       throw new Error(`Invalid container value: ${container}`);

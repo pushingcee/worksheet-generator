@@ -1,4 +1,4 @@
-export class DivRenderer {
+export class PuzzleRenderer {
   constructor(container, image) {
     if (!container || !image) throw new Error("Invalid input");
     this.container = container;

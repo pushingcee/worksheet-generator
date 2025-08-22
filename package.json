@@ -17,7 +17,6 @@
   },
   "scripts": {
     "serve": "webpack serve --config webpack.dev.js",
-    "serve:div": "webpack serve --config webpack.div.js",
     "build:dev": "webpack --config webpack.dev.js",
     "build:prod": "webpack --config webpack.prod.js",
     "build": "npm run build:prod"
