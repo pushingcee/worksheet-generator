@@ -59,4 +59,7 @@ The application uses webpack with separate configs for development and productio
 - `/src/html/` - Single HTML template processed by webpack
 - Webpack bundles everything into `/dist/` for deployment
 
-The codebase follows a modular ES6 architecture with clear separation of concerns between grid logic, rendering, and UI management.
+###
+
+Code non-functional requirements:
+reffer to code_requirements_claude.md 
