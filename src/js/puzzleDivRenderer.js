@@ -54,9 +54,12 @@ export class DivRenderer {
       tile.style.boxSizing = 'border-box';
       tile.style.cursor = 'pointer';
       
-      // Add drag and drop attributes for future functionality
+      // Add drag and drop attributes
       tile.draggable = true;
       tile.style.transition = 'transform 0.2s ease';
+      
+      // Add drag and drop event listeners
+      this.addDragDropListeners(tile);
       
       // Add hover effect
       tile.addEventListener('mouseenter', () => {
@@ -75,12 +78,12 @@ export class DivRenderer {
   }
 
   placeAnswersInTiles(squareStarts, answers, rowInterval) {
-    squareStarts.forEach(({ x, y }, index) => {
+    this.tiles.forEach((tile, index) => {
       const answerDiv = document.createElement('div');
       answerDiv.className = 'answer-overlay';
       answerDiv.style.position = 'absolute';
-      answerDiv.style.left = `${x}px`;
-      answerDiv.style.top = `${y + rowInterval - 50}px`;
+      answerDiv.style.left = '0px';
+      answerDiv.style.top = `${rowInterval - 50}px`;
       answerDiv.style.width = '150px';
       answerDiv.style.height = '50px';
       answerDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
@@ -94,7 +97,7 @@ export class DivRenderer {
       answerDiv.style.zIndex = '5';
       answerDiv.textContent = answers[index] || '';
       
-      this.container.appendChild(answerDiv);
+      tile.appendChild(answerDiv);
     });
   }
 
@@ -172,8 +175,54 @@ export class DivRenderer {
     });
   }
 
+  // Add drag and drop event listeners to a tile
+  addDragDropListeners(tile) {
+    // Drag start
+    tile.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', '');
+      tile.style.opacity = '0.5';
+      tile.classList.add('dragging');
+    });
+
+    // Drag end
+    tile.addEventListener('dragend', (e) => {
+      tile.style.opacity = '1';
+      tile.classList.remove('dragging');
+    });
+
+    // Drag over (allow drop)
+    tile.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      tile.style.borderColor = '#007bff';
+      tile.style.borderWidth = '2px';
+    });
+
+    // Drag leave
+    tile.addEventListener('dragleave', (e) => {
+      tile.style.borderColor = 'rgba(0,0,0,0.2)';
+      tile.style.borderWidth = '1px';
+    });
+
+    // Drop
+    tile.addEventListener('drop', (e) => {
+      e.preventDefault();
+      tile.style.borderColor = 'rgba(0,0,0,0.2)';
+      tile.style.borderWidth = '1px';
+      
+      const draggingTile = document.querySelector('.dragging');
+      if (draggingTile && draggingTile !== tile) {
+        this.swapTiles(draggingTile, tile);
+      }
+    });
+  }
+
   // Helper method to swap two tiles (useful for drag & drop)
   swapTiles(tile1, tile2) {
+    // Get the indices of both tiles in the tiles array
+    const tile1Index = this.tiles.indexOf(tile1);
+    const tile2Index = this.tiles.indexOf(tile2);
+    
+    // Swap only the visual positions, keeping the background images with their tiles
     const temp1X = tile1.style.left;
     const temp1Y = tile1.style.top;
     
@@ -183,7 +232,7 @@ export class DivRenderer {
     tile2.style.left = temp1X;
     tile2.style.top = temp1Y;
     
-    // Update dataset
+    // Update current position datasets
     const temp1DataX = tile1.dataset.currentX;
     const temp1DataY = tile1.dataset.currentY;
     
@@ -192,5 +241,10 @@ export class DivRenderer {
     
     tile2.dataset.currentX = temp1DataX;
     tile2.dataset.currentY = temp1DataY;
+    
+    // Swap elements in the tiles array to maintain array representation
+    if (tile1Index !== -1 && tile2Index !== -1) {
+      [this.tiles[tile1Index], this.tiles[tile2Index]] = [this.tiles[tile2Index], this.tiles[tile1Index]];
+    }
   }
 }
