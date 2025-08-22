@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worksheet generator - Div Version</title>
+</head>
+<body>
+    <header>
+        <h1>Worksheet generator (Div-based)</h1>
+    </header>
+    <hr>
+    <main>
+      <p>This simple tool helps educators and parents create engaging assignments and exercises for students. Just enter your questions and their corresponding answers, choose an image, and print a customized worksheet for your students.</p>
+      <hr>
+      <h3>Worksheet properties</h3>
+        <form id="worksheet-properties">
+          <!-- TODO: Add in the "near" future hehe xd
+          <span>
+            <label for="name">Name field</label>
+            <input type="checkbox" id="name">
+          </span>
+          <span>
+            <label for="date">Date field</label>
+            <input type="checkbox" id="date">
+          </span>
+          <span>
+            <label for="name">class field</label>
+            <input type="checkbox" id="class">
+          </span>
+          <span>
+            <label for="instruction">instruction field</label>
+            <input type="text" id="instruction">
+          </span> -->
+          <span>
+            <label for="single">Single page</label>
+            <input class="check-box" type="checkbox" id="single">
+          </span>
+          <span>
+            <label for="image">Image:</label>
+            <input type="file" id="upload">
+          </span>
+          <span>
+            <label for="image">Problem count:</label>
+            <select name="problemCount" id="problem-count"></select>
+          </span>
+            <button type="button" id="reshuffle">Re-shuffle</button>
+            <button type="submit" value="Submit" id="generate">Generate worksheet</button>
+        </form>
+      <hr>
+      <h3>Problems:</h3>
+      <div id="problem-space">
+      </div>
+      <hr>
+      <div id="container-wrapper" style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div>
+          <h4>Puzzle Image</h4>
+          <div id="image-container" style="border: 1px solid #ccc;">
+          </div>
+        </div>
+        <div>
+          <h4>Answer Grid</h4>
+          <div id="answer-grid-container" style="border: 1px solid #ccc;">
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- <footer>
+        <p>&copy; 2024 Worksheet generator</p>
+    </footer> -->
+</body>
+</html>
