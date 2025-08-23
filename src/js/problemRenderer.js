@@ -1,3 +1,5 @@
+import { MathRenderer } from './utils/mathRenderer.js';
+
 export class ProblemRenderer {
   constructor(container, gridManager) {
     if (!container) 
@@ -56,20 +58,41 @@ export class ProblemRenderer {
     squareStarts.forEach(({ x, y }, index) => {
       const label = labels[index] || "";
       
+      // Create cell container with flexbox
+      const cellDiv = document.createElement('div');
+      cellDiv.style.position = 'absolute';
+      cellDiv.style.left = `${x}px`;
+      cellDiv.style.top = `${y}px`;
+      cellDiv.style.width = `${columnInterval}px`;
+      cellDiv.style.height = `${rowInterval}px`;
+      cellDiv.style.display = 'flex';
+      cellDiv.style.alignItems = 'flex-end';
+      cellDiv.style.justifyContent = 'center';
+      cellDiv.style.pointerEvents = 'none';
+      
+      // Create text content div
       const textDiv = document.createElement('div');
-      textDiv.style.position = 'absolute';
-      textDiv.style.left = `${x + 10}px`;
-      textDiv.style.top = `${y + rowInterval - 30}px`;
-      textDiv.style.width = `${columnInterval - 20}px`;
-      textDiv.style.height = '20px';
+      textDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+      textDiv.style.padding = '8px';
+      textDiv.style.borderRadius = '4px';
       textDiv.style.fontSize = '20px';
       textDiv.style.fontFamily = 'Arial';
       textDiv.style.color = 'black';
-      textDiv.style.overflow = 'hidden';
       textDiv.style.pointerEvents = 'none';
-      textDiv.textContent = label;
       
-      this.container.appendChild(textDiv);
+      // Temporary: Always try to render math for debugging
+      console.log('Processing label in problemRenderer:', label);
+      textDiv.innerHTML = MathRenderer.render(label);
+      
+      // Original logic (commented for debugging):
+      // if (MathRenderer.containsMath(label)) {
+      //   textDiv.innerHTML = MathRenderer.render(label);
+      // } else {
+      //   textDiv.textContent = label;
+      // }
+      
+      cellDiv.appendChild(textDiv);
+      this.container.appendChild(cellDiv);
     });
   }
 }

@@ -1,0 +1,4 @@
+- currently 3/4/3/4 is not being rendered as it should be (trickier), math renderer needs a function for it to work
+- for big images, the problems/answers are not visible when rendered on paper, this is due to them being defined with pixels, there are 2 ways to approach this 
+    - quick and dirty -> transform them to a % 
+    - slower and less dirty - implement the sizing logic, transform the image to a predefined size while keeping the aspect ratio, thus the pixels will not matter

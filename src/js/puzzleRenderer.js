@@ -1,3 +1,5 @@
+import { MathRenderer } from './utils/mathRenderer.js';
+
 export class PuzzleRenderer {
   constructor(container, image) {
     if (!container || !image) throw new Error("Invalid input");
@@ -53,6 +55,9 @@ export class PuzzleRenderer {
       tile.style.border = '1px solid rgba(0,0,0,0.2)';
       tile.style.boxSizing = 'border-box';
       tile.style.cursor = 'pointer';
+      tile.style.display = 'flex';
+      tile.style.alignItems = 'flex-end';
+      tile.style.justifyContent = 'center';
       
       // Add drag and drop attributes
       tile.draggable = true;
@@ -81,21 +86,26 @@ export class PuzzleRenderer {
     this.tiles.forEach((tile, index) => {
       const answerDiv = document.createElement('div');
       answerDiv.className = 'answer-overlay';
-      answerDiv.style.position = 'absolute';
-      answerDiv.style.left = '0px';
-      answerDiv.style.top = `${rowInterval - 50}px`;
-      answerDiv.style.width = '150px';
-      answerDiv.style.height = '50px';
       answerDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
-      answerDiv.style.display = 'flex';
-      answerDiv.style.alignItems = 'center';
-      answerDiv.style.paddingLeft = '5px';
+      answerDiv.style.padding = '8px';
+      answerDiv.style.borderRadius = '4px';
       answerDiv.style.fontSize = '25px';
       answerDiv.style.fontFamily = 'Arial';
       answerDiv.style.color = 'black';
       answerDiv.style.pointerEvents = 'none';
       answerDiv.style.zIndex = '5';
-      answerDiv.textContent = answers[index] || '';
+      const answerText = answers[index] || '';
+      
+      // Temporary: Always try to render math for debugging
+      console.log('Processing answer in puzzleRenderer:', answerText);
+      answerDiv.innerHTML = MathRenderer.render(answerText);
+      
+      // Original logic (commented for debugging):
+      // if (MathRenderer.containsMath(answerText)) {
+      //   answerDiv.innerHTML = MathRenderer.render(answerText);
+      // } else {
+      //   answerDiv.textContent = answerText;
+      // }
       
       tile.appendChild(answerDiv);
     });

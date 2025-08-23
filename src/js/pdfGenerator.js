@@ -12,6 +12,12 @@ export class PdfGen {
     }
 
     try {
+      // Wait for fonts to load (important for KaTeX math rendering)
+      await document.fonts.ready;
+      
+      // Small delay to ensure math rendering is complete
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       // Import html2canvas dynamically
       const html2canvas = (await import('html2canvas')).default;
 
@@ -19,13 +25,17 @@ export class PdfGen {
       const imageCanvas = await html2canvas(imageContainer, {
         backgroundColor: 'white',
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        scale: 2, // Higher resolution for better math rendering
+        logging: false // Reduce console noise
       });
 
       const problemCanvas = await html2canvas(problemContainer, {
         backgroundColor: 'white',
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        scale: 2, // Higher resolution for better math rendering
+        logging: false
       });
 
       // Generate PDF
