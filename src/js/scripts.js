@@ -2,11 +2,12 @@ import { AspectRatios } from './aspectRatios.js';
 import { Scrambler } from './scrambler.js';
 import { PdfGen } from './pdfGenerator.js';
 import * as domHelper from './domHelper.js'
+import { importProblems, exportProblems } from './import-export-handler.js'
 import "../css/styles.css";
 import "../css/reset.css"
 import '@fontsource/fredoka';
 import '@fontsource/nunito'; 
-
+import { EVENT_NAMES } from './utils/constants.js'
 addEventListener("DOMContentLoaded", () => init());
 
 function init(){
@@ -15,7 +16,6 @@ function init(){
   const problemCountElement = document.getElementById("problem-count");
   const fileInput = document.getElementById('upload');
   
-  // Use div containers instead of canvas
   const imageContainer = document.getElementById('image-container');
   const problemContainer = document.getElementById('answer-grid-container');
   
@@ -32,74 +32,96 @@ function init(){
   domHelper.generateOptions(problemCountElement);
   domHelper.generateQuestionAnswerSpace(problemSpace, selectedProblemCount);
 
-  domHelper.getAllInputs().forEach(input => {
-    input.addEventListener("input", domHelper.checkInputsAndEmitEvent);
-  });
+  const updateScrambler = (problemCount) => {
+    if (!scrambler) return;
+    
+    scrambler.adjustForProblemCount(problemCount);
+    scrambler.answers = Array.from(document.querySelectorAll(".a")).map((e) => e.value);
+    scrambler.questions = Array.from(document.querySelectorAll(".q")).map((e) => e.value);
+    scrambler.initialize();
+  };
 
-  reshuffle.addEventListener('click', (event) => {
+  const handleReshuffle = (event) => {
     event.preventDefault();
     if (scrambler) {
-      scrambler.createPuzzleGrid()
+      scrambler.createPuzzleGrid();
     }
-  });
+  };
 
-  document.addEventListener("allInputsFilled", () => {
-    if(imageContainer.children.length > 0 && problemContainer.children.length > 0){
-      scrambler.adjustForProblemCount(selectedProblemCount)
-      scrambler.answers = Array.from(document.querySelectorAll(".a")).map((e) => e.value)
-      scrambler.questions = Array.from(document.querySelectorAll(".q")).map((e) => e.value)
-      scrambler.initialize();
-    }
-  });
+  const handleAllInputsFilled = () => {
+    updateScrambler(selectedProblemCount);
+  };
 
-  generateButton.addEventListener('click', (event) => {
+  const handleProblemsImported = (event) => {
+    const { problemCount } = event.detail;
+    updateScrambler(problemCount);
+    selectedProblemCount = problemCount;
+    problemCountElement.value = problemCount;
+  };
+
+  const handleGenerate = (event) => {
     event.preventDefault();
     if (scrambler && pdfGenerator) {
-      pdfGenerator.generate(imageContainer, problemContainer, singlePage)
+      pdfGenerator.generate(imageContainer, problemContainer, singlePage);
     }
-  });
+  };
 
-  exportButton.addEventListener('click', (event) => {
+  const handleExport = (event) => {
     event.preventDefault();
-    exportProblems();
-  });
+    exportProblems(selectedProblemCount);
+  };
 
-  importButton.addEventListener('click', (event) => {
+  const handleImportClick = (event) => {
     event.preventDefault();
     importFileInput.click();
-  });
+  };
 
-  importFileInput.addEventListener('change', (event) => {
+  const handleImportFile = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      importProblems(file);
+      await importProblems(file, {
+        problemCountElement,
+        selectedProblemCount,
+        problemSpace,
+        imageContainer
+      });
     }
-  });
+  };
 
-  checkBoxes.forEach(cb => {
-    cb.addEventListener("change", event => {
-      singlePage = event.target.checked;
-    });
-  });
+  const handleSinglePageToggle = (event) => {
+    singlePage = event.target.checked;
+  };
 
-  fileInput.addEventListener('change', (event) => {
+  const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       paintImageOnContainer(file);
     }
+  };
+
+  const handleProblemCountChange = (e) => {
+    const targetProblemCount = e.target.value;
+    domHelper.editQuestionAnswerSpace(problemSpace, Number(selectedProblemCount), Number(targetProblemCount));
+    if (targetProblemCount < selectedProblemCount) {
+      updateScrambler(targetProblemCount);
+    }
+    selectedProblemCount = targetProblemCount;
+  };
+
+  domHelper.getAllInputs().forEach(input => {
+    input.addEventListener("input", domHelper.checkInputsAndEmitEvent);
   });
 
-  problemCountElement.addEventListener("change", (e) => {
-    let targetProblemCount = e.target.value;
-    domHelper.editQuestionAnswerSpace(problemSpace, Number(selectedProblemCount), Number(targetProblemCount));
-    if (scrambler && targetProblemCount < selectedProblemCount) {
-      scrambler.adjustForProblemCount(targetProblemCount)
-      scrambler.answers = Array.from(document.querySelectorAll(".a")).map((e) => e.value)
-      scrambler.questions = Array.from(document.querySelectorAll(".q")).map((e) => e.value)
-      scrambler.initialize();
-    }
-    selectedProblemCount = targetProblemCount
-  });
+  reshuffle.addEventListener('click', handleReshuffle);
+  document.addEventListener("allInputsFilled", handleAllInputsFilled);
+  document.addEventListener(EVENT_NAMES.PROBLEMS_IMPORTED, handleProblemsImported);
+  generateButton.addEventListener('click', handleGenerate);
+  exportButton.addEventListener('click', handleExport);
+  importButton.addEventListener('click', handleImportClick);
+  importFileInput.addEventListener('change', handleImportFile);
+  checkBoxes.forEach(cb => cb.addEventListener("change", handleSinglePageToggle));
+  fileInput.addEventListener('change', handleFileUpload);
+  problemCountElement.addEventListener("change", handleProblemCountChange);
 
   function paintImageOnContainer(file) {
     const reader = new FileReader();
@@ -113,95 +135,6 @@ function init(){
       };
     };
     reader.readAsDataURL(file);
-  }
-
-  function exportProblems() {
-    const questions = domHelper.getAllQuestions().map(input => input.value);
-    const answers = domHelper.getAllAnswers().map(input => input.value);
-    
-    // Create the JSON object
-    const problemsData = {
-      problemCount: selectedProblemCount,
-      problems: []
-    };
-
-    // Combine questions and answers into problem objects
-    for (let i = 0; i < questions.length; i++) {
-      if (questions[i] || answers[i]) { // Only include if there's at least a question or answer
-        problemsData.problems.push({
-          id: i + 1,
-          question: questions[i] || '',
-          answer: answers[i] || ''
-        });
-      }
-    }
-
-    // Create and download the JSON file
-    const dataStr = JSON.stringify(problemsData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
-    link.download = 'worksheet-problems.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  function importProblems(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        
-        // Validate the JSON structure
-        if (!importedData.problems || !Array.isArray(importedData.problems)) {
-          return;
-        }
-
-        // Update problem count if provided and different
-        const importedProblemCount = importedData.problemCount || importedData.problems.length;
-        if (importedProblemCount !== selectedProblemCount) {
-          // Update the select dropdown
-          problemCountElement.value = importedProblemCount;
-          
-          // Update the form inputs
-          domHelper.editQuestionAnswerSpace(problemSpace, selectedProblemCount, importedProblemCount);
-          selectedProblemCount = importedProblemCount;
-        }
-
-        // Clear existing values
-        domHelper.getAllQuestions().forEach(input => input.value = '');
-        domHelper.getAllAnswers().forEach(input => input.value = '');
-
-        // Populate the form with imported data
-        const questionInputs = domHelper.getAllQuestions();
-        const answerInputs = domHelper.getAllAnswers();
-        
-        importedData.problems.forEach((problem, index) => {
-          if (questionInputs[index]) {
-            questionInputs[index].value = problem.question || '';
-          }
-          if (answerInputs[index]) {
-            answerInputs[index].value = problem.answer || '';
-          }
-        });
-
-        // Trigger re-render if image is already loaded
-        if (scrambler && imageContainer.children.length > 0) {
-          scrambler.adjustForProblemCount(selectedProblemCount);
-          scrambler.answers = Array.from(document.querySelectorAll(".a")).map((e) => e.value);
-          scrambler.questions = Array.from(document.querySelectorAll(".q")).map((e) => e.value);
-          scrambler.initialize();
-        }
-
-        // Clear the file input for future imports
-        importFileInput.value = '';
-      } catch (error) {
-        // Silent fail - invalid JSON
-      }
-    };
-    reader.readAsText(file);
   }
 }
 
@@ -228,9 +161,4 @@ function _setupScrambler(img, scrambler, imageContainer, problemContainer, selec
 
   scrambler.initialize();
   return scrambler
-}
-
-// Helper function to check if container has content (equivalent to canvas check)
-function isContainerEmpty(container) {
-  return container.children.length === 0;
 }

@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Each time you generate code, keep in mind that it should adhere strictly for ES2022 standard.
 
 ## Project Overview
 
