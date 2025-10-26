@@ -4,6 +4,7 @@ import 'katex/dist/katex.min.css';
 /**
  * Simple math renderer for fractions and powers only
  * Converts text like "3/4" and "x^2" to properly formatted math
+ * Preserves regular text and only renders math expressions
  */
 export class MathRenderer {
   static render(text) {
@@ -14,39 +15,103 @@ export class MathRenderer {
     console.log('MathRenderer.render called with:', text); // Debug log
 
     try {
-      // Convert common patterns to KaTeX syntax
-      let mathText = text
-        // Fractions: 3/4 → \frac{3}{4}
-        .replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}')
-        
-        // Mixed numbers: 2 1/4 → 2\frac{1}{4}
-        .replace(/(\d+)\s+(\d+)\/(\d+)/g, '$1\\frac{$2}{$3}')
-        
-        // Powers: x^2 → x^{2}, 3^4 → 3^{4}
-        .replace(/([a-zA-Z0-9]+)\^(\d+)/g, '$1^{$2}')
-        
-        // Powers with parentheses: (x+1)^2 → (x+1)^{2}
-        .replace(/(\([^)]+\))\^(\d+)/g, '$1^{$2}');
+      // Define regex patterns for math expressions
+      const mathPatterns = [
+        { regex: /(\d+)\s+(\d+)\/(\d+)/g, replacer: (match, whole, num, denom) => `${whole}\\frac{${num}}{${denom}}` }, // Mixed numbers
+        { regex: /(\d+)\/(\d+)/g, replacer: (match, num, denom) => `\\frac{${num}}{${denom}}` }, // Simple fractions
+        { regex: /(\([^)]+\))\^(\d+)/g, replacer: (match, base, exp) => `${base}^{${exp}}` }, // Powers with parentheses
+        { regex: /([a-zA-Z0-9]+)\^(\d+)/g, replacer: (match, base, exp) => `${base}^{${exp}}` } // Simple powers
+      ];
 
-      console.log('Converted to LaTeX:', mathText); // Debug log
+      // Find all math expressions in the text
+      const segments = [];
+      let lastIndex = 0;
+      let hasMath = false;
 
-      // Only render with KaTeX if we found math patterns
-      if (mathText !== text) {
-        console.log('Rendering with KaTeX...'); // Debug log
-        const rendered = katex.renderToString(mathText, {
-          throwOnError: false,    // Don't break on invalid math
-          displayMode: false,     // Inline math
-          output: 'html',        // HTML output for html2canvas compatibility
-          strict: false          // Allow some flexibility
+      // Create a combined regex to find all math expressions
+      const combinedRegex = /(\d+)\s+(\d+)\/(\d+)|(\d+)\/(\d+)|(\([^)]+\))\^(\d+)|([a-zA-Z0-9]+)\^(\d+)/g;
+
+      let match;
+      while ((match = combinedRegex.exec(text)) !== null) {
+        hasMath = true;
+
+        // Add text before the match
+        if (match.index > lastIndex) {
+          segments.push({
+            type: 'text',
+            content: text.substring(lastIndex, match.index)
+          });
+        }
+
+        // Convert the matched expression to LaTeX
+        let latexExpr = match[0];
+        if (match[1] && match[2] && match[3]) {
+          // Mixed number: 2 1/4
+          latexExpr = `${match[1]}\\frac{${match[2]}}{${match[3]}}`;
+        } else if (match[4] && match[5]) {
+          // Simple fraction: 3/4
+          latexExpr = `\\frac{${match[4]}}{${match[5]}}`;
+        } else if (match[6] && match[7]) {
+          // Power with parentheses: (x+1)^2
+          latexExpr = `${match[6]}^{${match[7]}}`;
+        } else if (match[8] && match[9]) {
+          // Simple power: x^2
+          latexExpr = `${match[8]}^{${match[9]}}`;
+        }
+
+        segments.push({
+          type: 'math',
+          content: latexExpr
         });
-        console.log('KaTeX rendered successfully'); // Debug log
-        return rendered;
+
+        lastIndex = match.index + match[0].length;
       }
-      
-      // No math found, return original text
-      console.log('No math patterns found, returning original text'); // Debug log
-      return text;
-      
+
+      // Add any remaining text after the last match
+      if (lastIndex < text.length) {
+        segments.push({
+          type: 'text',
+          content: text.substring(lastIndex)
+        });
+      }
+
+      // If no math was found, return the original text
+      if (!hasMath) {
+        console.log('No math patterns found, returning original text'); // Debug log
+        return text;
+      }
+
+      console.log('Segments found:', segments); // Debug log
+
+      // Render each segment appropriately
+      const renderedSegments = segments.map(segment => {
+        if (segment.type === 'math') {
+          try {
+            return katex.renderToString(segment.content, {
+              throwOnError: false,
+              displayMode: false,
+              output: 'html',
+              strict: false
+            });
+          } catch (error) {
+            console.error('Failed to render math segment:', segment.content, error);
+            return segment.content; // Fallback to original
+          }
+        } else {
+          // Escape HTML in regular text to prevent injection
+          return segment.content
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+      });
+
+      const result = renderedSegments.join('');
+      console.log('KaTeX rendered successfully'); // Debug log
+      return result;
+
     } catch (error) {
       console.error('Math rendering failed for:', text, error);
       return text; // Fallback to original text

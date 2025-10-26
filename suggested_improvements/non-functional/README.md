@@ -10,7 +10,7 @@ Based on the requirements in `code_requirements_claude.md`, the codebase has bee
 
 | Priority | Area | Time Est. | Impact |
 |----------|------|-----------|--------|
-| **CRITICAL** | [Function Length & SRP](./01_function_length_and_srp.md) | 2-3 days | High |
+| **CRITICAL** | ~~[Function Length & SRP](./01_function_length_and_srp.md) ~~| 2-3 days | High |
 | **HIGH** | [ES2022 Feature Adoption](./02_es2022_feature_adoption.md) | 1-2 days | High |
 | **HIGH** | [Magic Numbers & Constants](./03_magic_numbers_and_constants.md) | 1 day | Medium |
 | **MEDIUM-HIGH** | [Error Handling & Validation](./04_error_handling_and_validation.md) | 1.5 days | Medium |
@@ -27,7 +27,7 @@ Based on the requirements in `code_requirements_claude.md`, the codebase has bee
 
 ## Major Refactoring Required
 
-1. **Function Decomposition** - Break down the 104-line `init()` function
+1. ~~**Function Decomposition** - Break down the 104-line `init()` function~~ - done partially
 2. **ES2022 Modernization** - Add optional chaining, nullish coalescing, private fields
 3. **Error Handling Overhaul** - Implement comprehensive error handling with user feedback
 

@@ -22,7 +22,6 @@ const emitProblemsImported = (data) => {
 };
 
 const validateImportData = (data) => {
-  const {problemCount, problems } = data;
   if(!data?.problemCount){
     throw new Error('Invalid import data: missing problem count element');
   }
@@ -46,7 +45,6 @@ const validateImportData = (data) => {
       problems: []
     };
 
-    // Combine questions and answers into problem objects
     for (let i = 0; i < questions.length; i++) {
       if (questions[i] || answers[i]) { // Only include if there's at least a question or answer
         problemsData.problems.push({
@@ -57,7 +55,6 @@ const validateImportData = (data) => {
       }
     }
 
-    // Create and download the JSON file
     const dataStr = JSON.stringify(problemsData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     

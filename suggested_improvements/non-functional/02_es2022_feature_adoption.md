@@ -304,3 +304,27 @@ const validProblems = problems
 - ✅ Modern array methods used where appropriate
 - ✅ No regression in functionality
 - ✅ Code is more concise and safer
+
+---------------------------------------------------------
+# Developer review:
+```javascript
+  // BEFORE: Verbose array access
+  const lastProblem = problems[problems.length - 1];
+  const secondToLast = problems[problems.length - 2];
+
+  // AFTER: Clean and readable
+  const lastProblem = problems.at(-1);
+  const secondToLast = problems.at(-2);
+
+  // BEFORE: Complex array operations
+  const validProblems = problems.filter(p => p != null).map(p => p.question);
+
+  // AFTER: More expressive with modern features
+  const validProblems = problems
+    .filter(p => p != null)
+    .map(p => p?.question ?? 'Untitled');
+```
+suggestions are being rejected, they seem like they're being made just for their own sake. .at seems marginally better at best, the new with the nullish coalescing seems redundant also, why are we making nullchecks on the p that we're checking. 
+
+
+Phase 2 - rejected. 

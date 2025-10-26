@@ -139,7 +139,6 @@ function init(){
 }
 
 function _setupContainerDimensions(image, imageContainer, problemContainer) {
-  // Set container dimensions instead of canvas dimensions
   imageContainer.style.width = `${image.width}px`;
   imageContainer.style.height = `${image.height}px`;
   problemContainer.style.width = `${image.width}px`;
