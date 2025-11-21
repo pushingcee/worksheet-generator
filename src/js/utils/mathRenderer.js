@@ -2,6 +2,159 @@ import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
 /**
+ * Parser for converting math expressions to LaTeX
+ */
+class MathParser {
+  constructor(text) {
+    this.text = text;
+    this.pos = 0;
+    this.tokens = this.tokenize(text);
+    this.tokenIndex = 0;
+  }
+
+  tokenize(text) {
+    const tokens = [];
+    let i = 0;
+    while (i < text.length) {
+      const char = text[i];
+
+      if (/\s/.test(char)) {
+        i++;
+        continue;
+      }
+
+      if (/\d/.test(char)) {
+        let num = '';
+        while (i < text.length && /\d/.test(text[i])) {
+          num += text[i];
+          i++;
+        }
+        tokens.push({ type: 'NUMBER', value: num });
+        continue;
+      }
+
+      if (['+', '-', '.', '/', '^', '(', ')'].includes(char)) {
+        tokens.push({ type: 'OPERATOR', value: char });
+        i++;
+        continue;
+      }
+
+      // Handle unexpected characters by treating them as text/unknown
+      // For now, we'll just skip or error? 
+      // Let's treat them as single char tokens to be safe
+      tokens.push({ type: 'UNKNOWN', value: char });
+      i++;
+    }
+    return tokens;
+  }
+
+  peek() {
+    return this.tokens[this.tokenIndex];
+  }
+
+  consume() {
+    return this.tokens[this.tokenIndex++];
+  }
+
+  parse() {
+    const result = this.parseExpression();
+    if (this.tokenIndex < this.tokens.length) {
+      throw new Error('Unexpected content after expression');
+    }
+    return result;
+  }
+
+  // Level 0: +, -
+  parseExpression() {
+    let left = this.parseTerm();
+
+    while (this.peek() && (this.peek().value === '+' || this.peek().value === '-')) {
+      const op = this.consume().value;
+      const right = this.parseTerm();
+      left = `${left} ${op} ${right}`;
+    }
+
+    return left;
+  }
+
+  // Level 1: ., /
+  parseTerm() {
+    let left = this.parseFactor();
+
+    while (this.peek() && (this.peek().value === '.' || this.peek().value === '/')) {
+      const op = this.consume().value;
+      const right = this.parseFactor();
+
+      if (op === '/') {
+        left = `\\frac{${left}}{${right}}`;
+      } else if (op === '.') {
+        left = `${left} \\cdot ${right}`;
+      }
+    }
+
+    return left;
+  }
+
+  // Level 2: ^
+  parseFactor() {
+    let left = this.parseBase();
+
+    if (this.peek() && this.peek().value === '^') {
+      this.consume();
+      const right = this.parseFactor(); // Right associative for powers? Or parseBase?
+      // Usually powers are right associative: 2^3^4 = 2^(3^4). 
+      // But let's stick to simple recursion for now.
+      left = `${left}^{${right}}`;
+    }
+
+    return left;
+  }
+
+  // Level 3: Numbers, Parentheses
+  parseBase() {
+    const token = this.peek();
+
+    if (!token) {
+      throw new Error('Unexpected end of input');
+    }
+
+    if (token.type === 'NUMBER') {
+      this.consume();
+      return token.value;
+    }
+
+    if (token.value === '(') {
+      this.consume();
+      const expr = this.parseExpression();
+      if (!this.peek() || this.peek().value !== ')') {
+        throw new Error('Expected closing parenthesis');
+      }
+      this.consume();
+
+      // If the parenthesis group is part of a larger expression (like a fraction numerator),
+      // we might want to keep the parens or remove them depending on context.
+      // For LaTeX \frac{...}{...}, we don't need parens around the numerator/denominator usually.
+      // But if it's (a+b)^2, we need them if we don't put them in the base.
+      // However, our parseFactor handles the ^.
+      // If we return just `expr`, then `(1+2)` becomes `1+2`.
+      // `(1+2)^3` -> `1+2^{3}` which is wrong. It should be `(1+2)^{3}`.
+      // So we should preserve parens in the LaTeX output unless we know they are redundant.
+      // But \frac{(1+2)}{(3+4)} -> \frac{1+2}{3+4} looks better.
+      // Let's preserve them for now to be safe, except maybe we can strip them later?
+      // Actually, `\left( ... \right)` is good for sizing.
+      return `(${expr})`;
+      // Wait, if I return `(${expr})`, then `(1+2)/3` becomes `\frac{(1+2)}{3}`.
+      // This is valid but maybe slightly ugly?
+      // Let's try to be smart? No, simple is better.
+      // Maybe use \left( \right) ?
+      // return `\\left(${expr}\\right)`;
+    }
+
+    throw new Error(`Unexpected token: ${token.value}`);
+  }
+}
+
+/**
  * Simple math renderer for fractions and powers only
  * Converts text like "3/4" and "x^2" to properly formatted math
  * Preserves regular text and only renders math expressions
@@ -12,10 +165,32 @@ export class MathRenderer {
       return text;
     }
 
-    console.log('MathRenderer.render called with:', text); // Debug log
+    // Try to parse the entire text as a single math expression first
+    try {
+      // Quick check: does it look like math?
+      // Must contain at least one operator or be a number?
+      // The user's examples are pure math strings.
+      if (/[\d+\-*/^().]/.test(text)) {
+        const parser = new MathParser(text);
+        const latex = parser.parse();
+
+        // If we successfully parsed the whole string, render it
+        return katex.renderToString(latex, {
+          throwOnError: false,
+          displayMode: false,
+          output: 'html',
+          strict: false
+        });
+      }
+    } catch (e) {
+      // If parsing fails, fall back to the old segment-based approach
+      // This ensures we don't break mixed text like "The answer is 1/2"
+      // although the parser might fail on "The answer is".
+      console.log('MathParser failed, falling back to regex:', e.message);
+    }
 
     try {
-      // Define regex patterns for math expressions
+      // Define regex patterns for math expressions (Legacy support)
       const mathPatterns = [
         { regex: /(\d+)\s+(\d+)\/(\d+)/g, replacer: (match, whole, num, denom) => `${whole}\\frac{${num}}{${denom}}` }, // Mixed numbers
         { regex: /(\d+)\/(\d+)/g, replacer: (match, num, denom) => `\\frac{${num}}{${denom}}` }, // Simple fractions
@@ -77,11 +252,8 @@ export class MathRenderer {
 
       // If no math was found, return the original text
       if (!hasMath) {
-        console.log('No math patterns found, returning original text'); // Debug log
         return text;
       }
-
-      console.log('Segments found:', segments); // Debug log
 
       // Render each segment appropriately
       const renderedSegments = segments.map(segment => {
@@ -108,9 +280,7 @@ export class MathRenderer {
         }
       });
 
-      const result = renderedSegments.join('');
-      console.log('KaTeX rendered successfully'); // Debug log
-      return result;
+      return renderedSegments.join('');
 
     } catch (error) {
       console.error('Math rendering failed for:', text, error);
@@ -122,8 +292,8 @@ export class MathRenderer {
    * Test if text contains math patterns we can render
    */
   static containsMath(text) {
-    const hasMath = /(\d+\/\d+|\w+\^\d+)/.test(text);
-    console.log('containsMath check for:', text, '→', hasMath); // Debug log
+    // Updated to be more permissive since we have a parser now
+    const hasMath = /[\d+\-*/^().]/.test(text);
     return hasMath;
   }
 
@@ -133,7 +303,7 @@ export class MathRenderer {
   static async renderForPDF(text) {
     // Wait for fonts to be ready
     await document.fonts.ready;
-    
+
     return this.render(text);
   }
 }
