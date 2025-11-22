@@ -33,7 +33,7 @@ class MathParser {
         continue;
       }
 
-      if (['+', '-', '.', '/', '^', '(', ')'].includes(char)) {
+      if (['+', '-', '*', '.', '/', '^', '(', ')'].includes(char)) {
         tokens.push({ type: 'OPERATOR', value: char });
         i++;
         continue;
@@ -81,13 +81,18 @@ class MathParser {
   parseTerm() {
     let left = this.parseFactor();
 
-    while (this.peek() && (this.peek().value === '.' || this.peek().value === '/')) {
+    while (this.peek() && (this.peek().value === '.' || this.peek().value === '*' || this.peek().value === '/')) {
       const op = this.consume().value;
       const right = this.parseFactor();
 
       if (op === '/') {
-        left = `\\frac{${left}}{${right}}`;
+        // Strip outer parentheses from numerator and denominator if present
+        const cleanLeft = left.startsWith('(') && left.endsWith(')') ? left.slice(1, -1) : left;
+        const cleanRight = right.startsWith('(') && right.endsWith(')') ? right.slice(1, -1) : right;
+        left = `\\frac{${cleanLeft}}{${cleanRight}}`;
       } else if (op === '.') {
+        left = `${left} \\cdot ${right}`;
+      } else if (op === '*') {
         left = `${left} \\cdot ${right}`;
       }
     }
@@ -131,23 +136,12 @@ class MathParser {
       }
       this.consume();
 
-      // If the parenthesis group is part of a larger expression (like a fraction numerator),
-      // we might want to keep the parens or remove them depending on context.
-      // For LaTeX \frac{...}{...}, we don't need parens around the numerator/denominator usually.
-      // But if it's (a+b)^2, we need them if we don't put them in the base.
-      // However, our parseFactor handles the ^.
-      // If we return just `expr`, then `(1+2)` becomes `1+2`.
-      // `(1+2)^3` -> `1+2^{3}` which is wrong. It should be `(1+2)^{3}`.
-      // So we should preserve parens in the LaTeX output unless we know they are redundant.
-      // But \frac{(1+2)}{(3+4)} -> \frac{1+2}{3+4} looks better.
-      // Let's preserve them for now to be safe, except maybe we can strip them later?
-      // Actually, `\left( ... \right)` is good for sizing.
+      // Check if we should strip outer parentheses for cleaner fractions
+      // This is a simple heuristic: if the expression inside is "safe" or if we are just wrapping it.
+      // But for now, let's just return it with parens.
+      // Actually, for the specific case of (A) / (B), we might want to strip them in parseTerm.
+      // But let's return them here to be safe.
       return `(${expr})`;
-      // Wait, if I return `(${expr})`, then `(1+2)/3` becomes `\frac{(1+2)}{3}`.
-      // This is valid but maybe slightly ugly?
-      // Let's try to be smart? No, simple is better.
-      // Maybe use \left( \right) ?
-      // return `\\left(${expr}\\right)`;
     }
 
     throw new Error(`Unexpected token: ${token.value}`);
