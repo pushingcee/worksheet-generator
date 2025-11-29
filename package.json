@@ -3,7 +3,8 @@
     "@fontsource/fredoka": "^5.1.0",
     "@fontsource/nunito": "^5.1.0",
     "jspdf": "^2.5.2",
-    "katex": "^0.16.22"
+    "katex": "^0.16.22",
+    "@jahnchock/math-to-latex": "^1.0.0"
   },
   "devDependencies": {
     "css-loader": "^7.1.2",
