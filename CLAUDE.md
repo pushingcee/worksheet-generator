@@ -1,66 +1,64 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-Each time you generate code, keep in mind that it should adhere strictly for ES2022 standard.
+
+## This is NOT the Next.js you know
+
+The app in `next-app/` runs Next.js **16** — likely newer than your training data.
+Before writing any Next.js code, read the relevant guide in
+`next-app/node_modules/next/dist/docs/`. Do not trust remembered Next.js conventions.
 
 ## Project Overview
 
 This is a worksheet generator application for educators, specifically designed to create interactive math puzzles from uploaded images. The application splits an image into a grid, scrambles the pieces, and creates a PDF worksheet where students solve problems to determine the correct order of image pieces.
 
+The app lives in `next-app/` (Next.js 16.2, JavaScript, App Router, no Tailwind).
+The original plain-JS webpack app it was ported from is preserved on the `legacy` branch.
+
 ## Development Commands
 
-- `npm run serve` - Start development server on port 8080 with hot reload
-- `npm run build:dev` - Build for development with source maps
-- `npm run build:prod` - Build for production with minification 
-- `npm run build` - Alias for production build
+All commands run from `next-app/`:
 
-The application uses webpack with separate configs for development and production environments.
+- `npm run dev` - Start the dev server
+- `npm run build` - Production build
+- `npm run start` - Serve the production build
+- `npm run lint` - ESLint
 
 ## Architecture Overview
 
-### Core System Components
+### React layer (rewritten during the port)
 
-**Entry Point**: `src/js/scripts.js` - Main application initialization and event handling
+- `app/layout.js` - Root layout: fonts (`@fontsource/fredoka`, `@fontsource/nunito`) and the global CSS (`app/css/reset.css`, `styles.css`, `divStyles.css`).
+- `app/page.js` - Single route; loads the generator with `next/dynamic({ ssr: false })` so jsPDF/html2canvas/the DOM-tile renderers never run during prerender.
+- `components/WorksheetGenerator.js` - The single client component holding all UI state:
+  - `problems`: array of `{question, answer}`, resized when the problem count changes.
+  - `allFilled`: derived state (replaces the legacy `allInputsFilled` DOM event).
+  - Effects drive the imperative classes in `lib/`: a new `Scrambler` per uploaded image; a re-commit (`adjustForProblemCount` + `initialize`) whenever all inputs are filled for a new problems/count combination. Count-shrink and JSON import commit immediately, bypassing the filled check.
 
-**Grid System**: 
-- `GridManager` - Calculates optimal grid dimensions and tile positions based on problem count
-- Automatically finds closest rectangular factor pairs for non-perfect squares
+### Core logic (`lib/`, framework-agnostic plain JS - kept verbatim from the legacy app)
 
-**Canvas Rendering**:
-- `CanvasRenderer` (puzzleCanvasRenderer.js) - Handles image display, tile shuffling, and answer placement
-- `ProblemGridRenderer` (problemCanvasRenderer.js) - Renders the answer grid with questions
-
-**Core Logic**:
-- `Scrambler` - Orchestrates the entire puzzle creation process, coordinates grid manager and renderers
-- `PdfGen` - Generates downloadable PDF worksheets using jsPDF
-
-**UI Management**:
-- `domHelper.js` - Dynamic form generation, input validation, and DOM manipulation utilities
+- `gridManager.js` - Calculates grid dimensions/tile positions from the problem count (closest rectangular factor pair).
+- `scrambler.js` - Orchestrates puzzle creation; coordinates grid manager and renderers.
+- `puzzleRenderer.js` / `problemRenderer.js` - Build the puzzle tiles and answer grid as absolutely-positioned divs (there is **no** `<canvas>` element; "canvas" in older docs refers to these div containers). Includes drag-and-drop tile swapping.
+- `pdfGenerator.js` - jsPDF + html2canvas PDF generation; single-page or dual-page layouts.
+- `utils/mathRenderer.js` - KaTeX math rendering via `@jahnchock/math-to-latex`.
+- `problemCounts.js` - Non-prime 4-36 problem-count validation (grid factorization constraint).
+- `problemsIO.js` - JSON import/export of problems (pure data in/out; DOM only for the file download).
 
 ### Key Data Flow
 
-1. User uploads image → Canvas dimensions set to match image
-2. User enters problems/answers → Input validation triggers scrambler initialization  
-3. Scrambler creates GridManager → Calculates grid layout based on problem count
-4. Canvas renderers draw puzzle and answer grids
-5. User clicks "Generate" → PDF created with both grids
+1. User uploads image → containers sized to the image, `Scrambler` created
+2. User enters problems/answers → when all are filled, the grid re-commits
+3. `Scrambler` → `GridManager` → renderers draw the scrambled puzzle + answer grid
+4. "Generate worksheet" → PDF with both grids (single or dual page)
 
 ### Important Implementation Details
 
 - Problem count is restricted to non-prime numbers (4-36) for proper grid division
-- Canvas operations use `willReadFrequently: true` context for tile swapping performance
-- Custom event system (`allInputsFilled`) coordinates between DOM and canvas updates
+- Do NOT rewrite the imperative tile/renderer logic in `lib/` in React - it is deliberately imperative and slated for a monorepo extraction
 - Scrambler maintains separate arrays for original and shuffled tile positions
-- PDF generation supports single-page or dual-page layouts
+- Each keystroke while all inputs are filled re-initializes (and re-shuffles) the grid - preserved legacy behavior
 
-### File Organization
+## Non-functional requirements
 
-- `/src/js/` - All JavaScript modules using ES6 imports
-- `/src/css/` - Styles including reset.css and custom fonts (Fredoka, Nunito)
-- `/src/html/` - Single HTML template processed by webpack
-- Webpack bundles everything into `/dist/` for deployment
-
-###
-
-Code non-functional requirements:
-reffer to code_requirements_claude.md 
+Refer to `code_requirements_claude.md` (ES2022 standard applies to `lib/`).
