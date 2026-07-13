@@ -1,0 +1,59 @@
+/* Styles for div-based puzzle rendering */
+
+.puzzle-tile {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+
+.puzzle-tile:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  z-index: 10 !important;
+}
+
+.puzzle-tile:active {
+  transform: scale(0.98);
+}
+
+/* Drag and drop states */
+.puzzle-tile.dragging {
+  opacity: 0.8;
+  transform: rotate(5deg) scale(1.05);
+  z-index: 100 !important;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+}
+
+.puzzle-tile.drop-target {
+  box-shadow: inset 0 0 0 3px #007bff;
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Container styles */
+#image-container, #answer-grid-container {
+  position: relative;
+  display: inline-block;
+  margin: 10px;
+}
+
+.answer-overlay {
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+}
+
+/* Grid lines styling */
+.grid-line {
+  pointer-events: none;
+  z-index: 20;
+}
+
+#container-wrapper {
+  margin-top: 20px;
+}
+
+#container-wrapper > div {
+  text-align: center;
+}
+
+#container-wrapper h4 {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
